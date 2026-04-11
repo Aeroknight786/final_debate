@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #faf9f7;
+  --foreground: #1a1a1a;
+  --accent: #c45d3e;
+  --accent-light: #e8a48e;
+  --muted: #6b6b6b;
+  --surface: #ffffff;
+  --surface-alt: #f3f1ee;
+  --border: #e5e2dd;
+  --success: #4a7c59;
+  --warning: #c49a3e;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+/* Chat input auto-resize */
+.chat-input {
+  field-sizing: content;
+  min-height: 44px;
+  max-height: 160px;
+}
