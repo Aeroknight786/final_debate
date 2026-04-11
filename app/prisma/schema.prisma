@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile       UserProfile?
+  moduleStates  UserModuleState[]
+  conversations Conversation[]
+  beliefs       Belief[]
+  learnings     Learning[]
+  summaries     SessionSummary[]
+  ritualEvent   RitualEvent?
+
+  currentModule  String @default("module_0")
+  programStatus  String @default("active") // active, completed, paused
+  readinessScore Float  @default(0)
+}
+
+model UserProfile {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  cigarettesPerDay    Int?
+  yearsSmoking        Int?
+  previousQuitAttempts Int?
+  primaryMotives      String? // JSON array
+  primaryFears        String? // JSON array
+  smokingNarrative    String? // free text from intake
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UserModuleState {
+  id       String @id @default(uuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+  moduleId String
+
+  status         String @default("locked") // locked, active, in_progress, completed
+  readinessScore Float  @default(0)
+  blockers       String? // JSON array of unresolved belief IDs
+  testOutcome    String? // understood, partly_understood, unresolved, not_tested
+  completedAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, moduleId])
+}
+
+model Conversation {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  moduleId String
+  messages Message[]
+  summary  SessionSummary?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Message {
+  id             String @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+
+  role    String // user, assistant, system
+  content String
+
+  createdAt DateTime @default(now())
+}
+
+model Belief {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  canonicalLabel    String // e.g. "stress_relief", "concentration_aid"
+  label             String // human-readable: "Smoking relieves stress"
+  userWording       String? // user's own words
+  confidence        String  @default("high") // high, medium, low
+  evidenceFromUser  String? // JSON array
+  contradictions    String? // JSON array
+  status            String  @default("active") // active, under_challenge, weakened, deferred, resolved
+  targetModule      String? // which module should address this
+  lastReviewedAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Learning {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  moduleId String
+  summary  String
+  strength String @default("medium") // strong, medium, weak
+  evidence String? // JSON array
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SessionSummary {
+  id             String @id @default(uuid())
+  userId         String
+  user           User   @relation(fields: [userId], references: [id])
+  conversationId String @unique
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+
+  currentModule   String
+  summaryText     String
+  beliefsUpdated  String? // JSON: which beliefs changed
+  nextActions     String? // JSON array
+
+  createdAt DateTime @default(now())
+}
+
+model RitualEvent {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  eligible        Boolean  @default(false)
+  eligibleAt      DateTime?
+  completedAt     DateTime?
+  confirmedFinal  Boolean  @default(false)
+  statementText   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
