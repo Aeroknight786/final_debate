@@ -5,7 +5,7 @@ import { buildModulePrompt, buildMemoryPrompt, buildStageGovernorPrompt } from "
 import { getModule, MODULES } from "../modules/definitions";
 import { extractAndUpdateBeliefs, getActiveBeliefs } from "./belief-tracker";
 import { getLatestSummary, generateSessionSummary } from "./summary-engine";
-import { initializeModuleStates, assessReadiness, advanceModule } from "./stage-governor";
+import { initializeModuleStates } from "./stage-governor";
 
 export async function getOrCreateUser(userId?: string) {
   if (userId) {
@@ -141,18 +141,9 @@ export async function sendMessage(
     generateSessionSummary(userId, conversation.id, moduleId, allMessages).catch(() => {});
   }
 
-  // Every ~8 messages, assess readiness to advance
-  if (messageCount >= 8 && messageCount % 8 === 0) {
-    const allMessages: LLMMessage[] = [...historyMessages.slice(0, -1),
-      { role: "user" as const, content: userMessage },
-      { role: "assistant" as const, content: response }
-    ];
-    assessReadiness(userId, allMessages).then(async (assessment) => {
-      if (assessment.ready && assessment.readiness_score >= 0.7) {
-        await advanceModule(userId);
-      }
-    }).catch(() => {});
-  }
+  // NOTE: No auto-advance. Progression is an explicit user action gated
+  // by the rules-first stage governor (see assessReadiness /
+  // advanceModule in stage-governor.ts). Time-on-module never promotes.
 
   return { response, moduleId, isFirstMessage };
 }

@@ -121,19 +121,24 @@ Respond ONLY with valid JSON:
   "engagement_level": "high|medium|low|resistant"
 }`;
 
-export const READINESS_ASSESSMENT_PROMPT = `Based on the conversation history and the user's current beliefs, assess their readiness to move to the next module.
+export const READINESS_ASSESSMENT_PROMPT = `You are the stage governor for a module in a smoker's-debate program. A rules-based pre-check has already verified that the user has engaged with the module's target beliefs and that at least one derivative test has been deployed. Your job is the SECOND layer: judgment about whether the user has genuinely metabolized the module, or whether they are nodding along.
+
+Be skeptical. Surface-level agreement is not readiness. If the user is defensive, vague, or changing the subject, they are NOT ready. If the user can now articulate the corrected frame in their own words — using their own examples — they probably are.
 
 Consider:
-- Have the key concepts of the current module been covered?
-- Does the user show genuine understanding (not just agreement)?
-- Are there unresolved beliefs that need more work in this module?
-- Is the user defensive, open, or somewhere in between?
+- Have the key concepts of the current module actually been covered (not just mentioned)?
+- Did the user's REASONING shift, or did they just stop arguing?
+- Are there unresolved beliefs that still belong in this module?
+- Would advancing now leave an active contradiction in place?
 
 Respond ONLY with valid JSON:
 {
   "ready": true/false,
   "readiness_score": 0.0-1.0,
   "reason": "string",
+  "covered_concepts": ["string"],
+  "stress_tested_beliefs": ["canonical_label"],
   "unresolved_beliefs": ["canonical_label"],
+  "blockers": ["string"],
   "suggested_action": "continue_current|advance|test_understanding|revisit_belief"
 }`;
