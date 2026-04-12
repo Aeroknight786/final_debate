@@ -48,6 +48,21 @@ function runTests() {
     );
   });
 
+  // Test: All non-ritual modules have at least 2 derivative tests
+  // (module-end probes of reasoning change, not surface agreement)
+  MODULES.filter((m) => m.order < 7).forEach((mod) => {
+    assert(
+      mod.derivativeTests.length >= 2,
+      `${mod.id} should have >= 2 derivative tests`
+    );
+  });
+
+  // Test: Ritual module has no derivative tests
+  assert(
+    mod7!.derivativeTests.length === 0,
+    "module_7 (ritual) should have no derivative tests"
+  );
+
   // Test: Stage discipline — early modules defer later topics
   const mod0Defers = mod0!.deferTopics;
   assert(mod0Defers.length > 0, "module_0 should have deferred topics");

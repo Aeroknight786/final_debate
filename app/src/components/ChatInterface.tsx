@@ -242,7 +242,7 @@ export function ChatInterface() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Say what you think..."
+              placeholder="Defend your cigarette..."
               disabled={sending}
               rows={1}
               className="chat-input flex-1 bg-transparent resize-none outline-none text-[15px] py-1.5"

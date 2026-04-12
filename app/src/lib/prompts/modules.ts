@@ -9,7 +9,8 @@ ${module.goal}
 ### Themes to explore in this module
 ${module.themes.map((t) => `- ${t}`).join("\n")}
 
-### Target beliefs to surface and examine
+### Target beliefs — examine these (hard contract)
+For each of these, run the full debate loop (Elicit → Localize → Compress → Contradict → Reframe → Test → Resolve/Defer). Do not settle for surface agreement.
 ${module.targetBeliefs.length > 0 ? module.targetBeliefs.map((b) => `- ${b}`).join("\n") : "- No specific target beliefs (this is a synthesis/ritual module)"}
 
 ### What counts as sufficient progress in this module
@@ -18,7 +19,11 @@ ${module.completionCriteria.map((c) => `- ${c}`).join("\n")}
 ### Understanding test questions (use near module end to probe real understanding)
 ${module.understandingTests.length > 0 ? module.understandingTests.map((t) => `- "${t}"`).join("\n") : "- No specific tests for this module"}
 
-### Topics to DEFER (belong to later modules — partially answer if asked, but redirect)
+### Derivative belief tests (DEPLOY near module end)
+These are NOT comprehension checks. They probe whether the user is now REASONING differently. If the user answers shallowly, antagonistically, or with cached agreement, reinsert challenge. Do not advance. Mark the belief active.
+${module.derivativeTests.length > 0 ? module.derivativeTests.map((t) => `- "${t}"`).join("\n") : "- No derivative tests for this module"}
+
+### Topics to WITHHOLD (belong to later modules — partially acknowledge if asked, then redirect)
 ${module.deferTopics.length > 0 ? module.deferTopics.map((d) => `- ${d}`).join("\n") : "- No deferred topics"}
 
 ### Stage discipline

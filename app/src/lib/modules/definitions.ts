@@ -7,6 +7,10 @@ export interface ModuleDefinition {
   targetBeliefs: string[];
   completionCriteria: string[];
   understandingTests: string[];
+  // Derivative tests probe whether the user now reasons differently,
+  // not whether they merely agree. Surface 2-4 near module-end; shallow
+  // or antagonistic answers MUST reinsert challenge, not advance.
+  derivativeTests: string[];
   deferTopics: string[]; // topics that belong to later modules
   order: number;
 }
@@ -43,6 +47,11 @@ export const MODULES: ModuleDefinition[] = [
       "What would you miss most if you stopped smoking tomorrow?",
       "When you tried to quit before, what pulled you back?",
     ],
+    derivativeTests: [
+      "Pick the single strongest reason you smoke. Not the list — the one you'd defend last if I took the others away.",
+      "When you say a cigarette 'helps,' helps compared to what — not smoking at all, or not smoking right now?",
+      "If someone handed you your first cigarette today, knowing what you know now, would you take it?",
+    ],
     deferTopics: [
       "nicotine withdrawal mechanics",
       "false relief explanation",
@@ -72,6 +81,11 @@ export const MODULES: ModuleDefinition[] = [
       "What are the two parts of smoking addiction as we discussed them?",
       "If millions of smart people are trapped the same way, what does that tell you about the trap versus about you?",
       "When you feel ashamed of smoking, is that about you or about how the trap works?",
+    ],
+    derivativeTests: [
+      "Name the two layers of the trap in your own words — not the textbook version, the one that actually describes what you feel.",
+      "If a close friend was stuck in this same trap, would you call them weak?",
+      "What part of your smoking is the chemistry doing, and what part is the story you tell about it?",
     ],
     deferTopics: [
       "specific false benefit dismantling",
@@ -105,6 +119,12 @@ export const MODULES: ModuleDefinition[] = [
       "If a cigarette feels best after you haven't had one for hours, what does that tell you about what it's actually doing?",
       "What is the difference between ending craving and gaining a real benefit?",
       "Why might a non-smoker not need what the cigarette gives you?",
+    ],
+    derivativeTests: [
+      "Why does the first cigarette of the day usually feel the strongest — is it the tobacco working harder, or is it you needing it more?",
+      "If relief and benefit were actually the same thing, a painkiller would be a gift. Why isn't it?",
+      "Describe the exact second a cigarette 'helps.' What was happening in your body one minute before you lit it?",
+      "A non-smoker walks into the same stressful meeting you walked into yesterday. They don't crave anything. What does that tell you about what cigarettes are actually for?",
     ],
     deferTopics: [
       "specific stress/concentration dismantling",
@@ -144,6 +164,12 @@ export const MODULES: ModuleDefinition[] = [
       "Why does a cigarette feel most necessary when you're most deprived?",
       "Can you think of a time you handled stress without a cigarette? What actually happened?",
     ],
+    derivativeTests: [
+      "You told me cigarettes help you concentrate. If that were true, you should concentrate better at minute 10 after a cigarette than at minute 50. Is that what actually happens?",
+      "You said smoking calms you down in social situations. What does it do for a non-smoker in the same room?",
+      "Pick your most convincing 'cigarette helped me' memory. Walk me through it minute by minute — and tell me where the help actually started.",
+      "If the cigarette truly delivered the thing you're describing, why does it wear off so fast that you need another one?",
+    ],
     deferTopics: ["fear of quitting", "identity loss", "final cigarette"],
     order: 3,
   },
@@ -177,6 +203,12 @@ export const MODULES: ModuleDefinition[] = [
       "If a non-smoker doesn't miss cigarettes, what does that tell you about what you'd actually lose?",
       "Is quitting more like escaping a prison or losing a friend?",
     ],
+    derivativeTests: [
+      "Close your eyes and picture yourself a year from now, fully free. What, specifically, is missing from that life that you'd actually want back?",
+      "You told me you're afraid of 'losing a part of yourself.' Which part — the part that coughs, the part that schedules its day around cigarettes, or something else?",
+      "If quitting is a loss, why do ex-smokers almost never describe themselves as deprived?",
+      "What's harder: living as a smoker pretending you enjoy it, or letting go of a habit that was never actually giving you anything?",
+    ],
     deferTopics: ["final cigarette logistics", "post-quit life planning"],
     order: 4,
   },
@@ -207,6 +239,12 @@ export const MODULES: ModuleDefinition[] = [
       "Why did willpower alone fail you in the past?",
       "If you still believed cigarettes gave you something, what would happen when you tried to resist?",
       "What's different about stopping when you no longer want the cigarette versus stopping while still wanting it?",
+    ],
+    derivativeTests: [
+      "Think about your last serious quit attempt. Were you talking yourself out of wanting cigarettes, or had you actually stopped wanting them?",
+      "If willpower were the real answer, the strongest-willed smokers would all quit. They don't. What's that tell you about what was missing from your earlier attempts?",
+      "When you caved last time, was the craving stronger than you, or was the story you told yourself about the craving stronger than you?",
+      "What would 'trying not to' even mean if you no longer believed the cigarette gave you anything?",
     ],
     deferTopics: ["final cigarette specifics"],
     order: 5,
@@ -239,6 +277,12 @@ export const MODULES: ModuleDefinition[] = [
       "What are you actually afraid of about this being the last one?",
       "Are you a smoker who is quitting, or a non-smoker who has been freed?",
     ],
+    derivativeTests: [
+      "Finish this sentence honestly: I'm not ready yet because ______. Now look at that sentence — is it a reason, or is it the trap talking?",
+      "If 'just one' were truly harmless, you wouldn't need to promise yourself it's the last. Why the promise?",
+      "Say it out loud in your head: I do not need this. Does that feel like a lie, or like something you almost believe?",
+      "After the final cigarette, nothing is taken from you. What, if anything, still feels like it would be?",
+    ],
     deferTopics: [],
     order: 6,
   },
@@ -261,6 +305,7 @@ export const MODULES: ModuleDefinition[] = [
       "Ritual confirmation recorded",
     ],
     understandingTests: [],
+    derivativeTests: [],
     deferTopics: [],
     order: 7,
   },
@@ -278,6 +323,7 @@ export const MODULES: ModuleDefinition[] = [
     targetBeliefs: [],
     completionCriteria: ["User has reviewed their summary"],
     understandingTests: [],
+    derivativeTests: [],
     deferTopics: [],
     order: 8,
   },
