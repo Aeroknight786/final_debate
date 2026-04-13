@@ -102,20 +102,32 @@ Respond ONLY with valid JSON in this format:
 
 If no beliefs are expressed, return: {"beliefs": [], "contradictions": []}`;
 
-export const SUMMARY_PROMPT = `Summarize this conversation session for the smoking cessation program. Focus on:
+export const SUMMARY_PROMPT = `Summarize this conversation session for the smoker's-debate program. This summary feeds two things: (a) internal notes for the next session, and (b) a learnings card the user will see on their dashboard, so it must be sharp and honest.
 
-1. What beliefs were discussed
-2. Which beliefs changed status (strengthened, weakened, resolved, deferred)
-3. What evidence or examples the user gave
-4. What contradictions were surfaced
-5. The user's emotional state and engagement level
-6. Recommended next moves for the next session
+For each belief that genuinely shifted in this session, emit a "learning" entry capturing the four-part structure of the debate:
 
-Keep the summary concise (3-5 sentences max). Write it as internal notes, not as user-facing content.
+- original_belief: what the user thought going in, in their own words if possible ("smoking calms me down before meetings")
+- contradiction: the specific contradiction that was surfaced ("you described tension building before the cigarette, not after")
+- corrected_frame: the new framing the user can now articulate ("the cigarette ends a tension the addiction created — that's relief, not calm")
+- related_belief_labels: the canonical_label(s) of beliefs this learning is linked to (e.g. ["stress_relief", "relaxation"])
+- strength: strong | medium | weak — how stable does the new framing seem under pressure?
+
+Do not invent shifts. If the user only nodded, do not pretend a learning happened — leave learnings empty for that belief and mark it in beliefs_updated instead.
+
+Also list which beliefs changed status (strengthened, weakened, resolved, deferred) and recommend next moves.
 
 Respond ONLY with valid JSON:
 {
-  "summary": "string",
+  "summary": "string (3-5 sentences, internal notes voice)",
+  "learnings": [
+    {
+      "original_belief": "string",
+      "contradiction": "string",
+      "corrected_frame": "string",
+      "related_belief_labels": ["string"],
+      "strength": "strong|medium|weak"
+    }
+  ],
   "beliefs_updated": [{"canonical_label": "string", "new_status": "string", "reason": "string"}],
   "next_actions": ["string"],
   "engagement_level": "high|medium|low|resistant"

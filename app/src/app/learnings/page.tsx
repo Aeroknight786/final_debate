@@ -7,9 +7,19 @@ interface Learning {
   id: string;
   moduleId: string;
   summary: string;
+  originalBelief: string | null;
+  contradiction: string | null;
   strength: string;
   evidence: string | null;
+  relatedBeliefIds: string | null;
   createdAt: string;
+}
+
+interface BeliefRef {
+  id: string;
+  label: string;
+  canonicalLabel: string;
+  status: string;
 }
 
 const moduleNames: Record<string, string> = {
@@ -33,6 +43,7 @@ const strengthColors: Record<string, string> = {
 export default function LearningsPage() {
   const { userId, loading } = useUser();
   const [learnings, setLearnings] = useState<Learning[]>([]);
+  const [beliefs, setBeliefs] = useState<BeliefRef[]>([]);
   const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
@@ -43,6 +54,7 @@ export default function LearningsPage() {
         const res = await fetch(`/api/learnings?userId=${userId}`);
         const data = await res.json();
         setLearnings(data.learnings || []);
+        setBeliefs(data.beliefs || []);
       } catch (error) {
         console.error("Failed to fetch learnings:", error);
       } finally {
@@ -52,6 +64,8 @@ export default function LearningsPage() {
 
     fetchLearnings();
   }, [userId]);
+
+  const beliefById = new Map(beliefs.map((b) => [b.id, b]));
 
   if (loading || fetching) {
     return (
@@ -102,25 +116,100 @@ export default function LearningsPage() {
                       const evidence = learning.evidence
                         ? JSON.parse(learning.evidence)
                         : [];
+                      const relatedIds: string[] = learning.relatedBeliefIds
+                        ? JSON.parse(learning.relatedBeliefIds)
+                        : [];
+                      const related = relatedIds
+                        .map((id) => beliefById.get(id))
+                        .filter((b): b is BeliefRef => Boolean(b));
+                      const stillResists = related.filter(
+                        (b) => b.status !== "resolved"
+                      );
                       return (
                         <div
                           key={learning.id}
                           className="rounded-xl border p-4"
-                          style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                          style={{
+                            borderColor: "var(--border)",
+                            background: "var(--surface)",
+                          }}
                         >
                           <div className="flex items-start gap-3">
                             <div
                               className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0"
                               style={{
-                                background: strengthColors[learning.strength] || strengthColors.medium,
+                                background:
+                                  strengthColors[learning.strength] ||
+                                  strengthColors.medium,
                               }}
                             />
-                            <div>
-                              <p className="text-[15px]">{learning.summary}</p>
+                            <div className="flex-1 space-y-2">
+                              {learning.originalBelief && (
+                                <div>
+                                  <p
+                                    className="text-xs uppercase tracking-wide mb-0.5"
+                                    style={{ color: "var(--muted)" }}
+                                  >
+                                    You thought
+                                  </p>
+                                  <p
+                                    className="text-sm italic"
+                                    style={{ color: "var(--foreground)" }}
+                                  >
+                                    &ldquo;{learning.originalBelief}&rdquo;
+                                  </p>
+                                </div>
+                              )}
+                              {learning.contradiction && (
+                                <div>
+                                  <p
+                                    className="text-xs uppercase tracking-wide mb-0.5"
+                                    style={{ color: "var(--muted)" }}
+                                  >
+                                    What didn&apos;t add up
+                                  </p>
+                                  <p
+                                    className="text-sm"
+                                    style={{ color: "var(--foreground)" }}
+                                  >
+                                    {learning.contradiction}
+                                  </p>
+                                </div>
+                              )}
+                              <div>
+                                {learning.originalBelief && (
+                                  <p
+                                    className="text-xs uppercase tracking-wide mb-0.5"
+                                    style={{ color: "var(--muted)" }}
+                                  >
+                                    The corrected frame
+                                  </p>
+                                )}
+                                <p className="text-[15px]">{learning.summary}</p>
+                              </div>
                               {evidence.length > 0 && (
-                                <div className="mt-2">
-                                  <p className="text-xs" style={{ color: "var(--muted)" }}>
+                                <div>
+                                  <p
+                                    className="text-xs"
+                                    style={{ color: "var(--muted)" }}
+                                  >
                                     Based on: {evidence.join("; ")}
+                                  </p>
+                                </div>
+                              )}
+                              {stillResists.length > 0 && (
+                                <div
+                                  className="mt-2 pt-2 border-t"
+                                  style={{ borderColor: "var(--border)" }}
+                                >
+                                  <p
+                                    className="text-xs"
+                                    style={{ color: "var(--muted)" }}
+                                  >
+                                    Still resisting:{" "}
+                                    {stillResists
+                                      .map((b) => b.label)
+                                      .join(", ")}
                                   </p>
                                 </div>
                               )}

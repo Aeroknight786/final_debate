@@ -12,8 +12,21 @@ interface Belief {
   status: string;
   contradictions: string | null;
   evidenceFromUser: string | null;
+  targetModule: string | null;
   updatedAt: string;
 }
+
+const moduleNames: Record<string, string> = {
+  module_0: "The Challenge",
+  module_1: "The Trap",
+  module_2: "Nicotine vs Meaning",
+  module_3: "The Illusions of Relief",
+  module_4: "What You Think You're Giving Up",
+  module_5: "Why Prior Quits Failed",
+  module_6: "The Last Cigarette Logic",
+  module_7: "Final Ritual",
+  module_8: "Freedom",
+};
 
 const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
   active: { label: "Active", color: "#c45d3e", bg: "#fef2ee" },
@@ -54,16 +67,20 @@ export default function BeliefsPage() {
     );
   }
 
-  const activeBeliefs = beliefs.filter((b) => b.status !== "resolved");
-  const resolvedBeliefs = beliefs.filter((b) => b.status === "resolved");
+  const underExamination = beliefs.filter((b) =>
+    ["active", "under_challenge", "weakened"].includes(b.status)
+  );
+  const deferred = beliefs.filter((b) => b.status === "deferred");
+  const cracked = beliefs.filter((b) => b.status === "resolved");
 
   return (
     <div className="h-full overflow-y-auto">
       <div className="max-w-2xl mx-auto px-6 py-8">
         <h2 className="text-xl font-semibold mb-1">Your Beliefs About Smoking</h2>
         <p className="text-sm mb-8" style={{ color: "var(--muted)" }}>
-          These are the beliefs you have expressed or implied during our conversations.
-          We track them so we can examine each one honestly.
+          This is the live debate. Beliefs you defend stay under examination
+          until they crack or get formally parked for a later module. Nothing
+          here is hand-waved away.
         </p>
 
         {beliefs.length === 0 ? (
@@ -77,26 +94,60 @@ export default function BeliefsPage() {
           </div>
         ) : (
           <>
-            {activeBeliefs.length > 0 && (
+            {underExamination.length > 0 && (
               <div className="mb-10">
-                <h3 className="text-sm font-medium mb-4 uppercase tracking-wide" style={{ color: "var(--muted)" }}>
-                  Under examination ({activeBeliefs.length})
+                <h3
+                  className="text-sm font-medium mb-1 uppercase tracking-wide"
+                  style={{ color: "var(--muted)" }}
+                >
+                  Under examination ({underExamination.length})
                 </h3>
+                <p className="text-xs mb-4" style={{ color: "var(--muted)" }}>
+                  Currently in play. We are actively testing whether these
+                  hold up.
+                </p>
                 <div className="space-y-3">
-                  {activeBeliefs.map((belief) => (
+                  {underExamination.map((belief) => (
                     <BeliefCard key={belief.id} belief={belief} />
                   ))}
                 </div>
               </div>
             )}
 
-            {resolvedBeliefs.length > 0 && (
-              <div>
-                <h3 className="text-sm font-medium mb-4 uppercase tracking-wide" style={{ color: "var(--muted)" }}>
-                  Resolved ({resolvedBeliefs.length})
+            {deferred.length > 0 && (
+              <div className="mb-10">
+                <h3
+                  className="text-sm font-medium mb-1 uppercase tracking-wide"
+                  style={{ color: "var(--muted)" }}
+                >
+                  Deferred — we&apos;ll come back to these ({deferred.length})
                 </h3>
+                <p className="text-xs mb-4" style={{ color: "var(--muted)" }}>
+                  Parked on purpose. Each of these belongs to a later module
+                  where it will be properly dismantled. Not forgotten, not
+                  resolved.
+                </p>
                 <div className="space-y-3">
-                  {resolvedBeliefs.map((belief) => (
+                  {deferred.map((belief) => (
+                    <BeliefCard key={belief.id} belief={belief} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {cracked.length > 0 && (
+              <div>
+                <h3
+                  className="text-sm font-medium mb-1 uppercase tracking-wide"
+                  style={{ color: "var(--muted)" }}
+                >
+                  Cracked ({cracked.length})
+                </h3>
+                <p className="text-xs mb-4" style={{ color: "var(--muted)" }}>
+                  Beliefs whose logic no longer survives your own examples.
+                </p>
+                <div className="space-y-3">
+                  {cracked.map((belief) => (
                     <BeliefCard key={belief.id} belief={belief} />
                   ))}
                 </div>
@@ -150,10 +201,15 @@ function BeliefCard({ belief }: { belief: Belief }) {
         </div>
       )}
 
-      <div className="mt-3 flex items-center gap-3">
+      <div className="mt-3 flex items-center gap-3 flex-wrap">
         <span className="text-xs" style={{ color: "var(--muted)" }}>
           Confidence: {belief.confidence}
         </span>
+        {belief.status === "deferred" && belief.targetModule && (
+          <span className="text-xs" style={{ color: "var(--muted)" }}>
+            Returns in: {moduleNames[belief.targetModule] ?? belief.targetModule}
+          </span>
+        )}
       </div>
     </div>
   );

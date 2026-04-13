@@ -107,10 +107,13 @@ model Learning {
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
-  moduleId String
-  summary  String
-  strength String @default("medium") // strong, medium, weak
-  evidence String? // JSON array
+  moduleId         String
+  summary          String   // corrected frame, in the user's voice
+  originalBelief   String?  // what the user thought, before the debate
+  contradiction    String?  // the contradiction surfaced against it
+  strength         String   @default("medium") // strong, medium, weak
+  evidence         String?  // JSON array of user-supplied examples
+  relatedBeliefIds String?  // JSON array of Belief.id this learning addresses
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
