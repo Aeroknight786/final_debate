@@ -5,7 +5,7 @@ import { buildModulePrompt, buildMemoryPrompt, buildStageGovernorPrompt } from "
 import { getModule, MODULES } from "../modules/definitions";
 import { extractAndUpdateBeliefs, getActiveBeliefs } from "./belief-tracker";
 import { getLatestSummary, generateSessionSummary } from "./summary-engine";
-import { initializeModuleStates, assessReadiness, advanceModule } from "./stage-governor";
+import { initializeModuleStates } from "./stage-governor";
 
 export async function getOrCreateUser(userId?: string) {
   if (userId) {
@@ -141,18 +141,9 @@ export async function sendMessage(
     generateSessionSummary(userId, conversation.id, moduleId, allMessages).catch(() => {});
   }
 
-  // Every ~8 messages, assess readiness to advance
-  if (messageCount >= 8 && messageCount % 8 === 0) {
-    const allMessages: LLMMessage[] = [...historyMessages.slice(0, -1),
-      { role: "user" as const, content: userMessage },
-      { role: "assistant" as const, content: response }
-    ];
-    assessReadiness(userId, allMessages).then(async (assessment) => {
-      if (assessment.ready && assessment.readiness_score >= 0.7) {
-        await advanceModule(userId);
-      }
-    }).catch(() => {});
-  }
+  // NOTE: No auto-advance. Progression is an explicit user action gated
+  // by the rules-first stage governor (see assessReadiness /
+  // advanceModule in stage-governor.ts). Time-on-module never promotes.
 
   return { response, moduleId, isFirstMessage };
 }
@@ -171,6 +162,14 @@ export async function getConversationHistory(userId: string, moduleId?: string) 
   return conversation?.messages ?? [];
 }
 
+// Hard-edged opening challenges. The assistant MUST anchor on one of these,
+// not drift into "tell me about your relationship with smoking" territory.
+const OPENING_CHALLENGES = [
+  "Bring me your strongest argument for smoking.",
+  "Tell me exactly what a cigarette gives you.",
+  "You think smoking helps. Let's test that.",
+];
+
 export async function startProgram(userId: string): Promise<string> {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) throw new Error("User not found");
@@ -185,11 +184,20 @@ export async function startProgram(userId: string): Promise<string> {
     buildStageGovernorPrompt(openingMod.order, MODULES.length),
   ].join("\n\n---\n\n");
 
-  const openingPrompt = `Generate your opening message to start the debate program. This is the user's first interaction.
+  // Pick a deterministic-but-varied anchor per user. We don't want pure
+  // random — we want every user to get a sharp challenge, not onboarding.
+  const anchor =
+    OPENING_CHALLENGES[
+      Math.abs(hashUserId(userId)) % OPENING_CHALLENGES.length
+    ];
 
-Your goal: get them talking about why they smoke. Open with something that feels like a genuine challenge, not a lecture. Make them want to defend smoking — because that's where the real work begins.
+  const openingPrompt = `This is the user's FIRST message. You are opening a smoker's debate, not a wellness intake. Do not ask how they're feeling. Do not ask about their "relationship with smoking." Do not describe the program.
 
-Keep it to 2-3 sentences. Be direct, warm, and intriguing.`;
+Open with a direct challenge anchored on this line (use it verbatim or very close to it, then add ONE short follow-up sentence that invites them to defend smoking):
+
+"${anchor}"
+
+Keep it to 2-3 sentences total. Warm toward the smoker, sharp toward the logic. No lectures. No soft framing. No "I'm here to help." Make them want to argue back.`;
 
   const response = await chatCompletion(systemPrompt, [
     { role: "user", content: openingPrompt },
@@ -207,4 +215,13 @@ Keep it to 2-3 sentences. Be direct, warm, and intriguing.`;
   });
 
   return response;
+}
+
+function hashUserId(userId: string): number {
+  let h = 0;
+  for (let i = 0; i < userId.length; i++) {
+    h = (h << 5) - h + userId.charCodeAt(i);
+    h |= 0;
+  }
+  return h;
 }

@@ -56,12 +56,30 @@ export async function extractAndUpdateBeliefs(
         lastReviewedAt: new Date(),
       };
 
-      // Only update status if it's progressing (not regressing)
-      const statusOrder = ["active", "under_challenge", "weakened", "deferred", "resolved"];
-      const currentIdx = statusOrder.indexOf(existing.status);
-      const newIdx = statusOrder.indexOf(extracted.status);
-      if (newIdx > currentIdx) {
-        updates.status = extracted.status;
+      // Status discipline:
+      // - "deferred" is a parking action, not progress. A belief in
+      //   `deferred` may NOT be silently bumped to `weakened` by a stray
+      //   extraction; it must first re-enter `under_challenge`.
+      // - Otherwise progress only forward along the lifecycle.
+      const progressOrder = [
+        "active",
+        "under_challenge",
+        "weakened",
+        "resolved",
+      ];
+      const isDeferred = existing.status === "deferred";
+      if (isDeferred) {
+        if (extracted.status === "under_challenge") {
+          updates.status = "under_challenge";
+        }
+        // weakened/resolved/active from a deferred state are ignored —
+        // the model must re-engage the belief explicitly.
+      } else {
+        const currentIdx = progressOrder.indexOf(existing.status);
+        const newIdx = progressOrder.indexOf(extracted.status);
+        if (currentIdx >= 0 && newIdx > currentIdx) {
+          updates.status = extracted.status;
+        }
       }
 
       // Update confidence if it has decreased (progress)
@@ -126,4 +144,29 @@ export async function getActiveBeliefs(userId: string) {
     },
     orderBy: { updatedAt: "desc" },
   });
+}
+
+/**
+ * Three honest buckets for the UI and for prompt context:
+ * - underExamination: live debate work (active, under_challenge, weakened)
+ * - deferred: explicitly parked for a later module
+ * - cracked: resolved
+ *
+ * The brief: the system should make unresolved tension visible, not pretend
+ * every module ends in clean agreement. Lumping deferred into "active" hides
+ * the parking lot.
+ */
+export async function getBeliefsByBucket(userId: string) {
+  const all = await prisma.belief.findMany({
+    where: { userId },
+    orderBy: { updatedAt: "desc" },
+  });
+
+  const underExamination = all.filter((b) =>
+    ["active", "under_challenge", "weakened"].includes(b.status)
+  );
+  const deferred = all.filter((b) => b.status === "deferred");
+  const cracked = all.filter((b) => b.status === "resolved");
+
+  return { underExamination, deferred, cracked };
 }
